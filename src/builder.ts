@@ -3,7 +3,7 @@
  *
  * Webpack构建器，适用于NOW直播IVWEB团队工程项目.
  *
- * cpselvis <cpselvis@gmal.com>
+ * cpselvis <cpselvis@gmal.com> 
  */
 import path from 'path';
 import glob from 'glob';
@@ -111,7 +111,7 @@ const PATHS = {
 };
 
 class Builder {
-
+ 
     /**
      * @function createDevConfig
      * @desc     创建用于开发过程中的webpack打包配置

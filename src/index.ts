@@ -4,9 +4,9 @@ import Config from './config';
 import Server from './server';
 import { postMessage, BuilderType } from "./util";
 export interface BaseConfig {
-  [propName: string]: any;
+  [propName: string]: any; 
 }
-
+ 
 const builderOptions = Config.getBuildConfig();
 const devConfig: BaseConfig = Builder.createDevConfig(builderOptions);
 const prodConfig: BaseConfig = Builder.createProdConfig(builderOptions);
