@@ -61,7 +61,7 @@ export interface BuilderOptions {
     alias?: any,
     babelrcPath?: string,
     envs: object,
-    currentEnv: object,
+    currentEnv: string,
 }
 
 
@@ -197,7 +197,7 @@ class Builder {
         // 设置 loader 的npm包查找的相对路径，包括本地node_modules、.feflow、测试环境的node_module
         devConfig.resolveLoader = this.setResolveLoaderPath(options.runtime)
 
-        return webpackMerge(devConfig, mixCreateConfig(options))
+        return webpackMerge(devConfig, this.mixCreateConfig(options))
     }
 
     /**
@@ -335,7 +335,7 @@ class Builder {
         prodConfig.resolveLoader = this.setResolveLoaderPath(options.runtime)
 
         // return prodConfig
-        return webpackMerge(prodConfig, mixCreateConfig(options))
+        return webpackMerge(prodConfig, this.mixCreateConfig(options))
     }
 
     /**
@@ -778,10 +778,10 @@ class Builder {
         })
     }
 
-    static setDefinePlugin(envs: object, currentEnv: object) {
+    static setDefinePlugin(envs: object, currentEnv: string) {
         return new webpack.DefinePlugin({
             'process.env': envs[currentEnv].envObj
-        }),
+        })
     }
 
     /**
