@@ -1,6 +1,6 @@
 {
   "name": "builder-webpack4-react",
-  "version": "0.0.4",
+  "version": "0.1.5",
   "description": "webpack项目构建器.",
   "main": "lib/index.js",
   "scripts": {
@@ -69,7 +69,8 @@
     "webpack": "4.20.2",
     "webpack-dev-middleware": "^3.4.0",
     "webpack-hot-middleware": "^2.22.3",
-    "webpack-subresource-integrity": "1.1.0"
+    "webpack-subresource-integrity": "1.1.0",
+    "webpack-merge": "^4.2.1"
   },
   "devDependencies": {
     "@types/express": "^4.16.1",

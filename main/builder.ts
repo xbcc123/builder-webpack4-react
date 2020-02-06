@@ -22,7 +22,7 @@ import HTMLInlineCSSWebpackPlugin from 'html-inline-css-webpack-plugin';
 import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin';
 import {deepCopy, listDir, merge, isEmpty, getCSSModulesLocalIdent} from './util';
 import Config from './config';
-const webpackMerge = require('webpack-merge')
+var webpackMerge = require('webpack-merge')
 
 // 当前运行的时候的根目录
 let projectRoot: string = Config.getPath('feflow.json');
@@ -60,8 +60,8 @@ export interface BuilderOptions {
     runtime?: string,
     alias?: any,
     babelrcPath?: string,
-    envs: object,
-    currentEnv: string,
+    envs?: object,
+    currentEnv?: string,
 }
 
 
@@ -102,12 +102,29 @@ const baseConfig = {
         hints: 'warning', // enum
         maxAssetSize: 200000, // int (in bytes),
         maxEntrypointSize: 400000, // int (in bytes)
-        assetFilter: function (assetFilename: String): boolean {
+        assetFilter: function(assetFilename: String): boolean {
             // Function predicate that provides asset filenames
             return assetFilename.endsWith('.css') || assetFilename.endsWith('.js')
         }
-    }
-};
+    },
+    envs: {
+        // 环境变量配置
+        dev: {
+            envObj: {
+                NODE_ENV: '"development"',
+                API_HOST: '"/"'
+            }
+        },
+
+        prod: {
+            envObj: {
+                NODE_ENV: '"production"',
+                API_HOST: '""'
+            }
+        }
+    },
+    currentEnv: 'dev'
+}
 
 const PATHS = {
     src: path.join(projectRoot, 'src')

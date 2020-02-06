@@ -7,8 +7,8 @@ export interface BaseConfig {
     [propName: string]: any
 }
 const builderOptions = Config.getBuildConfig()
-let devConfig: BaseConfig = Builder.createDevConfig(builderOptions)
-let prodConfig: BaseConfig = Builder.createProdConfig(builderOptions)
+let devConfig: BaseConfig = {}
+let prodConfig: BaseConfig = {}
 
 function builderWebpack4(cmd: string) {
     // 开发环境
