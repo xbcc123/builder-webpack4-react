@@ -21,28 +21,28 @@ function builderWebpack4(cmd: string) {
     // 开发测试环境
     if (cmd === 'test') {
         builderOptions.currentEnv = 'test'
-        devConfig = Builder.createDevConfig(builderOptions)
+        devConfig = Builder.createProdConfig(builderOptions)
         build()
     }
 
     // 正式测试环境
     if (cmd === 'formalTest') {
         builderOptions.currentEnv = 'formalTest'
-        devConfig = Builder.createDevConfig(builderOptions)
+        devConfig = Builder.createProdConfig(builderOptions)
         build()
     }
 
     // 演示环境
     if (cmd === 'demo') {
         builderOptions.currentEnv = 'demo'
-        devConfig = Builder.createDevConfig(builderOptions)
+        devConfig = Builder.createProdConfig(builderOptions)
         build()
     }
 
     // 生产环境
     if (cmd === 'build') {
         builderOptions.currentEnv = 'prod'
-        devConfig = Builder.createDevConfig(builderOptions)
+        devConfig = Builder.createProdConfig(builderOptions)
         build()
     }
 }
