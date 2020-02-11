@@ -3,7 +3,7 @@
  *
  * Webpack构建器，适用于NOW直播IVWEB团队工程项目.
  *
- * cpselvis <cpselvis@gmal.com> 
+ * cpselvis <cpselvis@gmal.com>
  */
 import path from 'path';
 import glob from 'glob';
@@ -20,9 +20,15 @@ import UglifyJsPlugin from 'uglifyjs-webpack-plugin';
 import StringReplaceWebpackPlugin from 'string-replace-webpack-plugin';
 import HTMLInlineCSSWebpackPlugin from 'html-inline-css-webpack-plugin';
 import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin';
-import {deepCopy, listDir, merge, isEmpty, getCSSModulesLocalIdent} from './util';
+import {
+    deepCopy,
+    listDir,
+    merge,
+    isEmpty,
+    getCSSModulesLocalIdent,
+} from './util';
 import Config from './config';
-var webpackMerge = require('webpack-merge')
+var webpackMerge = require('webpack-merge');
 
 // 当前运行的时候的根目录
 let projectRoot: string = Config.getPath('feflow.json');
@@ -36,52 +42,50 @@ export interface BaseConfig {
 }
 
 export interface BuilderOptions {
-    outDir: string | object,
-    entry: string | object,
-    moduleName?: string,
-    bizName?: string,
-    minifyHTML: boolean,
-    minifyCSS?: boolean,
-    minifyJS?: boolean,
-    inlineCSS: boolean,
-    usePx2rem: boolean,
-    useSri: boolean,
-    "remUnit": number,
-    remPrecision: number,
-    inject: boolean,
-    useTreeShaking?: boolean,
-    port?: number,
-    hot?: boolean,
-    product?: string,
-    domain?: string,
-    cdn?: string,
-    useReact?: boolean,
-    externals?: Array<any>,
-    runtime?: string,
-    alias?: any,
-    babelrcPath?: string,
-    envs?: object,
-    currentEnv?: string,
+    outDir: string | object;
+    entry: string | object;
+    moduleName?: string;
+    bizName?: string;
+    minifyHTML: boolean;
+    minifyCSS?: boolean;
+    minifyJS?: boolean;
+    inlineCSS: boolean;
+    usePx2rem: boolean;
+    useSri: boolean;
+    remUnit: number;
+    remPrecision: number;
+    inject: boolean;
+    useTreeShaking?: boolean;
+    port?: number;
+    hot?: boolean;
+    product?: string;
+    domain?: string;
+    cdn?: string;
+    useReact?: boolean;
+    externals?: Array<any>;
+    runtime?: string;
+    alias?: any;
+    babelrcPath?: string;
+    envs?: object;
+    currentEnv?: string;
 }
-
-
 
 export interface LoaderObj {
-    test?: object,
-    use?: object | Array<any>,
-    loader?: any,
-    options: LoaderObjOptions,
-    include?: string,
-    exclude?: string
+    test?: object;
+    use?: object | Array<any>;
+    loader?: any;
+    options: LoaderObjOptions;
+    include?: string;
+    exclude?: string;
 }
 
-export interface LoaderObjOptions{
-    [propName: string]: any
+export interface LoaderObjOptions {
+    [propName: string]: any;
 }
 
 interface String {
     endsWith(searchString: string, endPosition?: number): boolean;
-};
+}
 
 // 最基础的配置
 const baseConfig = {
@@ -89,12 +93,12 @@ const baseConfig = {
     cache: true,
     entry: glob.sync(path.join(projectRoot, './src/pages/*')),
     module: {
-        rules: []
+        rules: [],
     },
     output: '',
     plugins: [],
     resolve: {
-        alias: glob.sync(path.join(projectRoot, './src/*/')) // 支持Webpack import绝对路径的写法
+        alias: glob.sync(path.join(projectRoot, './src/*/')), // 支持Webpack import绝对路径的写法
     },
     resolveLoader: {},
     // 对体积过大的包进行提示
@@ -104,30 +108,15 @@ const baseConfig = {
         maxEntrypointSize: 400000, // int (in bytes)
         assetFilter: function(assetFilename: String): boolean {
             // Function predicate that provides asset filenames
-            return assetFilename.endsWith('.css') || assetFilename.endsWith('.js')
-        }
-    },
-    envs: {
-        // 环境变量配置
-        dev: {
-            envObj: {
-                NODE_ENV: '"development"',
-                API_HOST: '"/"'
-            }
+            return (
+                assetFilename.endsWith('.css') || assetFilename.endsWith('.js')
+            );
         },
-
-        prod: {
-            envObj: {
-                NODE_ENV: '"production"',
-                API_HOST: '""'
-            }
-        }
     },
-    currentEnv: 'dev'
-}
+};
 
 const PATHS = {
-    src: path.join(projectRoot, 'src')
+    src: path.join(projectRoot, 'src'),
 };
 
 class Builder {
@@ -147,74 +136,89 @@ class Builder {
      * @example
      */
     static createDevConfig(options: BuilderOptions): BaseConfig {
-        const devConfig: BaseConfig = deepCopy(baseConfig)
-        devConfig.mode = 'development'
+        const devConfig: BaseConfig = deepCopy(baseConfig);
+        devConfig.mode = 'development';
         // 设置打包规则
-        const devRules: Array<any> = []
+        const devRules: Array<any> = [];
         // 设置HTML解析规则
-        devRules.push(this.setHtmlRule())
+        devRules.push(this.setHtmlRule());
         // 设置图片解析规则
-        devRules.push(this.setImgRule(false))
+        devRules.push(this.setImgRule(false));
         // 设置CSS解析规则
-        devRules.push(this.setCssRule())
+        devRules.push(this.setCssRule());
         // 设置使用CSS Modules的CSS解析规则
-        devRules.push(this.setCssModulesRule())
+        devRules.push(this.setCssModulesRule());
         // 设置Less解析规则，开发环境开启css-hot-loader
         devRules.push(
-            this.setLessRule(true, options.usePx2rem, options.remUnit, options.remPrecision)
-        )
+            this.setLessRule(
+                true,
+                options.usePx2rem,
+                options.remUnit,
+                options.remPrecision
+            )
+        );
         // 设置使用CSS Modules的Less解析规则，开发环境开启css-hot-loader
         devRules.push(
-            this.setLessModulesRule(true, options.usePx2rem, options.remUnit, options.remPrecision)
-        )
+            this.setLessModulesRule(
+                true,
+                options.usePx2rem,
+                options.remUnit,
+                options.remPrecision
+            )
+        );
         // 设置JS解析规则
-        devRules.push(this.setJsRule(options.babelrcPath))
+        devRules.push(this.setJsRule(options.babelrcPath));
         // 设置TS解析规则
-        devRules.push(this.setTsRule())
+        devRules.push(this.setTsRule());
         // 设置字体解析规则
-        devRules.push(this.setFontRule())
+        devRules.push(this.setFontRule());
 
         // 设置打包插件
-        let devPlugins: Array<any> = []
-        devPlugins.push(new StringReplaceWebpackPlugin())
+        let devPlugins: Array<any> = [];
+        devPlugins.push(new StringReplaceWebpackPlugin());
         // 设置提取CSS为一个单独的文件的插件
-        devPlugins.push(this.setMiniCssExtractPlugin(false, ''))
+        devPlugins.push(this.setMiniCssExtractPlugin(false, ''));
 
         if (options.useReact !== false) {
             // React, react-dom 通过cdn引入
-            devPlugins.push(this.setExternalPlugin(options.externals))
+            devPlugins.push(this.setExternalPlugin(options.externals));
         }
         // 增加热更新组件
-        devPlugins.push(new webpack.HotModuleReplacementPlugin())
+        devPlugins.push(new webpack.HotModuleReplacementPlugin());
         // 抽离公共js
         // devPlugins.push(this.setCommonsChunkPlugin());
         // 多页面打包
         // 开发环境不使用inlineCss，保证css热更新功能
 
-        const { newEntry, htmlWebpackPlugins, cssInlinePlugins } = this.setMultiplePage(
+        const {
+            newEntry,
+            htmlWebpackPlugins,
+            cssInlinePlugins,
+        } = this.setMultiplePage(
             devConfig.entry,
             false,
             options.inject,
             false,
             '',
             ''
-        )
-        devPlugins = devPlugins.concat(htmlWebpackPlugins, cssInlinePlugins)
+        );
+        devPlugins = devPlugins.concat(htmlWebpackPlugins, cssInlinePlugins);
 
-        devConfig.entry = newEntry
+        devConfig.entry = newEntry;
         // 开发阶段增加sourcemap.
-        devConfig.devtool = 'inline-source-map'
+        devConfig.devtool = 'inline-source-map';
         // 这里还是依然按照原来的配置，将静态资源用根目录伺服
-        devConfig.output = this.setOutput(false, '', '/', options.outDir)
-        devConfig.module.rules = devRules
-        devConfig.plugins = devPlugins
-        devConfig.devServer = this.setDevServer(options.port || 8001)
-        devConfig.resolve.alias = this.setAlias(options.alias)
-        devConfig.resolve.extensions = ['.js', '.jsx', '.ts', '.tsx', '.json']
+        devConfig.output = this.setOutput(false, '', '/', options.outDir);
+        devConfig.module.rules = devRules;
+        devConfig.plugins = devPlugins;
+        devConfig.devServer = this.setDevServer(options.port || 8001);
+        devConfig.resolve.alias = this.setAlias(options.alias);
+        devConfig.resolve.extensions = ['.js', '.jsx', '.ts', '.tsx', '.json'];
         // 设置 loader 的npm包查找的相对路径，包括本地node_modules、.feflow、测试环境的node_module
-        devConfig.resolveLoader = this.setResolveLoaderPath(options.runtime)
+        devConfig.resolveLoader = this.setResolveLoaderPath(options.runtime);
 
-        return webpackMerge(devConfig, this.mixCreateConfig(options))
+        // return devConfig
+        return webpackMerge(this.mixCreateConfig(options), devConfig);
     }
 
     /**
@@ -236,75 +240,86 @@ class Builder {
      * @example
      */
     static createProdConfig(options: BuilderOptions): BaseConfig {
-        const prodConfig: BaseConfig = deepCopy(baseConfig)
-        prodConfig.mode = 'production'
-        const bizName: string | undefined = options.bizName
-        const moduleName: string | undefined = options.moduleName
+        const prodConfig: BaseConfig = deepCopy(baseConfig);
+        prodConfig.mode = 'production';
+        const bizName: string | undefined = options.bizName;
+        const moduleName: string | undefined = options.moduleName;
         // 业务域名
-        const domain: string = options.domain || 'now.qq.com'
-        const cdn: string = options.cdn || '11.url.cn'
-        const product: string = options.product || 'now'
+        const domain: string = options.domain || 'now.qq.com';
+        const cdn: string = options.cdn || '11.url.cn';
+        const product: string = options.product || 'now';
         // Html 路径前缀, 打包时的目录
-        const htmlPrefix: string = moduleName ? `../../webserver/${bizName}` : '../webserver'
+        const htmlPrefix: string = moduleName
+            ? `../../webserver/${bizName}`
+            : '../webserver';
         // Css, Js, Img等静态资源路径前缀, 打包时的目录
-        const assetsPrefix: string = moduleName ? `cdn/${bizName}` : 'cdn'
+        const assetsPrefix: string = moduleName ? `cdn/${bizName}` : 'cdn';
         const cdnUrl: string = moduleName
             ? `//${cdn}/${product}/${moduleName}/${bizName}`
-            : `//${cdn}/${product}/${bizName}`
+            : `//${cdn}/${product}/${bizName}`;
         const serverUrl: string = moduleName
             ? `//${domain}/${moduleName}/${bizName}`
-            : `//${domain}/${bizName}`
+            : `//${domain}/${bizName}`;
 
         // const regex = new RegExp(assetsPrefix + '/', 'g');
 
         // 设置打包规则
-        const prodRules: Array<any> = []
+        const prodRules: Array<any> = [];
         // 设置HTML解析规则
-        prodRules.push(this.setHtmlRule())
+        prodRules.push(this.setHtmlRule());
         // 设置图片解析规则, 图片需要hash
-        prodRules.push(this.setImgRule(true, ''))
+        prodRules.push(this.setImgRule(true, ''));
         // 设置CSS解析规则
-        prodRules.push(this.setCssRule())
+        prodRules.push(this.setCssRule());
         // 设置开启CSS Modules的CSS解析规则
-        prodRules.push(this.setCssModulesRule())
+        prodRules.push(this.setCssModulesRule());
         // 设置Less解析规则，生产环境不开启css-hot-loader
         prodRules.push(
-            this.setLessRule(false, options.usePx2rem, options.remUnit, options.remPrecision)
-        )
+            this.setLessRule(
+                false,
+                options.usePx2rem,
+                options.remUnit,
+                options.remPrecision
+            )
+        );
         // 设置开启CSS Modules的Less解析规则，生产环境不开启css-hot-loader
         prodRules.push(
-            this.setLessModulesRule(false, options.usePx2rem, options.remUnit, options.remPrecision)
-        )
+            this.setLessModulesRule(
+                false,
+                options.usePx2rem,
+                options.remUnit,
+                options.remPrecision
+            )
+        );
         // 设置JS解析规则
-        prodRules.push(this.setJsRule(options.babelrcPath))
+        prodRules.push(this.setJsRule(options.babelrcPath));
         // 设置TS解析规则
-        prodRules.push(this.setTsRule())
+        prodRules.push(this.setTsRule());
         // 设置字体解析规则
-        prodRules.push(this.setFontRule())
+        prodRules.push(this.setFontRule());
 
         // 设置打包插件
-        let prodPlugins: Array<any> = []
+        let prodPlugins: Array<any> = [];
         // 清空Public目录插件, https://github.com/johnagan/clean-webpack-plugin/issues/17
         prodPlugins.push(
             new CleanWebpackPlugin([options.outDir], {
                 root: projectRoot,
                 verbose: true,
-                dry: false
+                dry: false,
             })
-        )
-        prodPlugins.push(new StringReplaceWebpackPlugin())
+        );
+        prodPlugins.push(new StringReplaceWebpackPlugin());
         // 设置提取CSS为一个单独的文件的插件
-        prodPlugins.push(this.setMiniCssExtractPlugin(true, ''))
-        prodPlugins.push(this.setOptimizeCssAssetsPlugin())
+        prodPlugins.push(this.setMiniCssExtractPlugin(true, ''));
+        prodPlugins.push(this.setOptimizeCssAssetsPlugin());
 
-  
         if (options.minifyJS) {
             // 压缩JS
             // webpack4 mode=production 下会默认启动 terser-webpack-plugin
         }
         if (options.useReact !== false) {
             // React, react-dom 通过cdn引入
-            prodPlugins.push(this.setExternalPlugin(options.externals))
+            prodPlugins.push(this.setExternalPlugin(options.externals));
         }
         // 抽离公共js
         /**
@@ -312,20 +327,24 @@ class Builder {
          */
         //prodPlugins.push(this.setCommonsChunkPlugin());
         // 支持Fis3的 inline 语法糖 多页面打包, 默认压缩html
-        const { newEntry, htmlWebpackPlugins, cssInlinePlugins } = this.setMultiplePage(
+        const {
+            newEntry,
+            htmlWebpackPlugins,
+            cssInlinePlugins,
+        } = this.setMultiplePage(
             prodConfig.entry,
             options.minifyHTML,
             options.inject,
             options.inlineCSS,
             assetsPrefix,
             htmlPrefix
-        )
+        );
 
-        prodPlugins = prodPlugins.concat(htmlWebpackPlugins, cssInlinePlugins)
+        prodPlugins = prodPlugins.concat(htmlWebpackPlugins, cssInlinePlugins);
 
         if (options.useSri !== false) {
             // 给生成出来的js bundle增加跨域头(cross-origin)，便于错误日志记录
-            prodPlugins.push(this.setSriPlugin())
+            prodPlugins.push(this.setSriPlugin());
         }
 
         prodPlugins.push(
@@ -339,20 +358,25 @@ class Builder {
                 product,
                 options.outDir
             )
-        )
+        );
 
-        prodConfig.entry = newEntry
-        prodConfig.output = this.setOutput(true, assetsPrefix, cdnUrl + '/', options.outDir)
-        prodConfig.module.rules = prodRules
-        prodConfig.plugins = prodPlugins
-        prodConfig.bail = true
-        prodConfig.resolve.alias = this.setAlias(options.alias)
-        prodConfig.resolve.extensions = ['.js', '.jsx', '.ts', '.tsx', '.json']
+        prodConfig.entry = newEntry;
+        prodConfig.output = this.setOutput(
+            true,
+            assetsPrefix,
+            cdnUrl + '/',
+            options.outDir
+        );
+        prodConfig.module.rules = prodRules;
+        prodConfig.plugins = prodPlugins;
+        prodConfig.bail = true;
+        prodConfig.resolve.alias = this.setAlias(options.alias);
+        prodConfig.resolve.extensions = ['.js', '.jsx', '.ts', '.tsx', '.json'];
         // 设置 loader 的npm包查找的相对路径，此处设置在全局的 .feflow 目录下
-        prodConfig.resolveLoader = this.setResolveLoaderPath(options.runtime)
+        prodConfig.resolveLoader = this.setResolveLoaderPath(options.runtime);
 
         // return prodConfig
-        return webpackMerge(prodConfig, this.mixCreateConfig(options))
+        return webpackMerge(this.mixCreateConfig(options), prodConfig);
     }
 
     /**
@@ -364,29 +388,22 @@ class Builder {
      * @example
      */
     static mixCreateConfig(options: BuilderOptions): BaseConfig {
-        const mixConfig: BaseConfig = deepCopy(baseConfig)
-        mixConfig.mode = 'production'
-        const bizName: string | undefined = options.bizName
-        const moduleName: string | undefined = options.moduleName
-        // 业务域名
-        const domain: string = options.domain || 'now.qq.com'
-        const cdn: string = options.cdn || '11.url.cn'
-        const product: string = options.product || 'now'
+        const mixConfig: BaseConfig = deepCopy(baseConfig);
+        mixConfig.mode = 'production';
 
-        
         // 设置打包规则
-        const minRules: Array<any> = []
+        const minRules: Array<any> = [];
 
         // 设置打包插件
-        let mixPlugins: Array<any> = []
+        let mixPlugins: Array<any> = [];
 
         // 环境变量配置
-        mixPlugins.push(this.setDefinePlugin(options.envs, options.currentEnv))
+        mixPlugins.push(this.setDefinePlugin(options.envs, options.currentEnv));
 
-        mixConfig.module.rules = minRules
-        mixConfig.plugins = mixPlugins
-        return mixConfig
-    } 
+        mixConfig.module.rules = minRules;
+        mixConfig.plugins = mixPlugins;
+        return mixConfig;
+    }
 
     /**
      * 设置打包后的输出 output 内容
@@ -402,18 +419,18 @@ class Builder {
         publicPath: string,
         outDir: string | object
     ) {
-        let hash = ''
-        outDir = outDir || 'public'
+        let hash = '';
+        outDir = outDir || 'public';
         if (useHash) {
-            hash = '_[chunkhash:8]'
+            hash = '_[chunkhash:8]';
         }
 
         return {
             filename: `[name]${hash}.js?_bid=152`,
             path: path.join(projectRoot, `${outDir}/${pathPrefix}`),
             publicPath: publicPath,
-            crossOriginLoading: 'anonymous'
-        }
+            crossOriginLoading: 'anonymous',
+        };
     }
 
     /**
@@ -424,15 +441,15 @@ class Builder {
      * @private
      */
     static setImgRule(useHash: boolean, pathPrefix?: string) {
-        let filename = ''
-        let hash = ''
+        let filename = '';
+        let hash = '';
 
         if (pathPrefix) {
-            filename = pathPrefix + '/'
+            filename = pathPrefix + '/';
         }
 
         if (useHash) {
-            hash = '_[hash:8]'
+            hash = '_[hash:8]';
         }
 
         return {
@@ -440,10 +457,10 @@ class Builder {
             use: {
                 loader: 'inline-file-loader',
                 options: {
-                    name: `${filename}img/[name]${hash}.[ext]`
-                }
-            }
-        }
+                    name: `${filename}img/[name]${hash}.[ext]`,
+                },
+            },
+        };
     }
 
     /**
@@ -453,9 +470,9 @@ class Builder {
         return {
             test: /\.(woff|woff2|eot|ttf|otf)$/,
             use: {
-                loader: 'file-loader'
-            }
-        }
+                loader: 'file-loader',
+            },
+        };
     }
 
     /**
@@ -466,16 +483,16 @@ class Builder {
      * @private
      */
     static setHtmlRule() {
-        const htmlRuleArray: Array<any> = []
+        const htmlRuleArray: Array<any> = [];
 
         htmlRuleArray.push({
             loader: 'html-loader',
             options: {
                 // 支持 html `${}` 语法
                 interpolate: 1,
-                attrs: [':src']
-            }
-        })
+                attrs: [':src'],
+            },
+        });
 
         // Fis3 inline 语法糖支持
         htmlRuleArray.push({
@@ -490,41 +507,47 @@ class Builder {
                         pattern: /<script.*?src="(.*?)\?__inline".*?>.*?<\/script>/gim,
                         replacement: (source: string): string => {
                             // 找到需要 inline 的包
-                            const result = /<script.*?src="(.*?)\?__inline"/gim.exec(source)
-                            const pkg = result && result[1]
+                            const result = /<script.*?src="(.*?)\?__inline"/gim.exec(
+                                source
+                            );
+                            const pkg = result && result[1];
                             return (
-                                "<script>${require('raw-loader!babel-loader!" + pkg + "')}</script>"
-                            )
-                        }
+                                "<script>${require('raw-loader!babel-loader!" +
+                                pkg +
+                                "')}</script>"
+                            );
+                        },
                     },
                     {
                         // inline html, 匹配<!--inline[/assets/inline/meta.html]-->语法
                         pattern: /<!--inline\[.*?\]-->/gim,
                         replacement: (source: string): string => {
                             // 找到需要 inline 的包
-                            const result = /<!--inline\[(.*?)\]-->/gim.exec(source)
-                            let path = result && result[1]
+                            const result = /<!--inline\[(.*?)\]-->/gim.exec(
+                                source
+                            );
+                            let path = result && result[1];
                             if (path && path[0] === '/') {
-                                path = '../..' + path
+                                path = '../..' + path;
                             }
 
-                            return "${require('raw-loader!" + path + "')}"
-                        }
-                    }
-                ]
-            }
-        })
+                            return "${require('raw-loader!" + path + "')}";
+                        },
+                    },
+                ],
+            },
+        });
 
-        return { test: /index\.html$/, use: htmlRuleArray }
+        return { test: /index\.html$/, use: htmlRuleArray };
     }
 
     /**
      * 样式文件正则
      */
-    static cssRegex = /\.css$/
-    static cssModulesRegex = /\.module\.css$/
-    static lessRegex = /\.less$/
-    static lessModulesRegex = /\.module\.less$/
+    static cssRegex = /\.css$/;
+    static cssModulesRegex = /\.module\.css$/;
+    static lessRegex = /\.less$/;
+    static lessModulesRegex = /\.module\.less$/;
 
     /**
      * 设置CSS解析规则
@@ -533,8 +556,8 @@ class Builder {
         return {
             test: Builder.cssRegex,
             exclude: Builder.cssModulesRegex,
-            use: ['style-loader', 'css-loader']
-        }
+            use: ['style-loader', 'css-loader'],
+        };
     }
 
     /**
@@ -549,11 +572,11 @@ class Builder {
                     loader: 'css-loader',
                     options: {
                         modules: true,
-                        getLocalIdent: getCSSModulesLocalIdent
-                    }
-                }
-            ]
-        }
+                        getLocalIdent: getCSSModulesLocalIdent,
+                    },
+                },
+            ],
+        };
     }
 
     /**
@@ -572,27 +595,27 @@ class Builder {
         remUnit: number,
         remPrecision: number
     ) {
-        const cssRuleArray: Array<LoaderObj> = []
+        const cssRuleArray: Array<LoaderObj> = [];
 
         if (useHotLoader) {
             cssRuleArray.push({
                 loader: 'css-hot-loader',
-                options: {}
-            })
+                options: {},
+            });
         }
 
         cssRuleArray.push({
             loader: MiniCssExtractPlugin.loader,
-            options: {}
-        })
+            options: {},
+        });
 
         // 加载Css loader, 判断是否开启压缩
         const cssLoaderRule = {
             loader: 'css-loader',
-            options: {}
-        }
+            options: {},
+        };
 
-        cssRuleArray.push(cssLoaderRule)
+        cssRuleArray.push(cssLoaderRule);
 
         // 如果开启px2rem，则加载px2rem-loader
         if (usePx2rem) {
@@ -600,9 +623,9 @@ class Builder {
                 loader: 'px2rem-loader',
                 options: {
                     remUnit: remUnit || 75,
-                    remPrecision: remPrecision || 8
-                }
-            })
+                    remPrecision: remPrecision || 8,
+                },
+            });
         }
 
         // css 前缀，兼容低版本浏览器
@@ -611,31 +634,35 @@ class Builder {
             options: {
                 plugins: () => [
                     require('autoprefixer')({
-                        overrideBrowserslist: ['last 2 version', '> 1%', 'iOS 7']
-                    })
-                ]
-            }
-        })
+                        overrideBrowserslist: [
+                            'last 2 version',
+                            '> 1%',
+                            'iOS 7',
+                        ],
+                    }),
+                ],
+            },
+        });
 
         // 雪碧图loader
         cssRuleArray.push({
             loader: 'sprites-loader',
-            options: {}
-        })
+            options: {},
+        });
 
         // 加载解析less的less-loader
         cssRuleArray.push({
             loader: 'less-loader',
             options: {
-                includePaths: [path.join(projectRoot, './src')]
-            }
-        })
+                includePaths: [path.join(projectRoot, './src')],
+            },
+        });
 
         return {
             test: Builder.lessRegex,
             exclude: Builder.lessModulesRegex,
-            use: cssRuleArray
-        }
+            use: cssRuleArray,
+        };
     }
 
     /**
@@ -654,30 +681,30 @@ class Builder {
         remUnit: number,
         remPrecision: number
     ) {
-        const cssRuleArray: Array<LoaderObj> = []
+        const cssRuleArray: Array<LoaderObj> = [];
 
         if (useHotLoader) {
             cssRuleArray.push({
                 loader: 'css-hot-loader',
-                options: {}
-            })
+                options: {},
+            });
         }
 
         cssRuleArray.push({
             loader: MiniCssExtractPlugin.loader,
-            options: {}
-        })
+            options: {},
+        });
 
         // 加载Css loader, 开启Css Modules
         const cssLoaderRule = {
             loader: 'css-loader',
             options: {
                 modules: true,
-                getLocalIdent: getCSSModulesLocalIdent
-            }
-        }
+                getLocalIdent: getCSSModulesLocalIdent,
+            },
+        };
 
-        cssRuleArray.push(cssLoaderRule)
+        cssRuleArray.push(cssLoaderRule);
 
         // 如果开启px2rem，则加载px2rem-loader
         if (usePx2rem) {
@@ -685,9 +712,9 @@ class Builder {
                 loader: 'px2rem-loader',
                 options: {
                     remUnit: remUnit || 75,
-                    remPrecision: remPrecision || 8
-                }
-            })
+                    remPrecision: remPrecision || 8,
+                },
+            });
         }
 
         // css 前缀，兼容低版本浏览器
@@ -696,30 +723,34 @@ class Builder {
             options: {
                 plugins: () => [
                     require('autoprefixer')({
-                        overrideBrowserslist: ['last 2 version', '> 1%', 'iOS 7']
-                    })
-                ]
-            }
-        })
+                        overrideBrowserslist: [
+                            'last 2 version',
+                            '> 1%',
+                            'iOS 7',
+                        ],
+                    }),
+                ],
+            },
+        });
 
         // 雪碧图loader
         cssRuleArray.push({
             loader: 'sprites-loader',
-            options: {}
-        })
+            options: {},
+        });
 
         // 加载解析less的less-loader
         cssRuleArray.push({
             loader: 'less-loader',
             options: {
-                includePaths: [path.join(projectRoot, './src')]
-            }
-        })
+                includePaths: [path.join(projectRoot, './src')],
+            },
+        });
 
         return {
             test: Builder.lessModulesRegex,
-            use: cssRuleArray
-        }
+            use: cssRuleArray,
+        };
     }
 
     /**
@@ -736,19 +767,21 @@ class Builder {
                 {
                     loader: 'thread-loader',
                     options: {
-                        workers: 3
-                    }
+                        workers: 3,
+                    },
                 },
                 {
                     loader: 'babel-loader',
                     options: {
                         // babel默认查找根目录下的babel.config.js作为全局配置，除非在此选项强制指定；
                         // 且此选项不会影响加载.babelrc，参考：https://babeljs.io/docs/en/options#configfile
-                        configFile: babelrcPath && path.join(process.cwd(), babelrcPath)
-                    }
-                }
-            ]
-        }
+                        configFile:
+                            babelrcPath &&
+                            path.join(process.cwd(), babelrcPath),
+                    },
+                },
+            ],
+        };
     }
 
     /**
@@ -761,8 +794,8 @@ class Builder {
         return {
             test: /\.ts(x?)$/,
             loader: 'happypack/loader',
-            exclude: path.join(projectRoot, 'node_modules')
-        }
+            exclude: path.join(projectRoot, 'node_modules'),
+        };
     }
 
     /**
@@ -772,33 +805,34 @@ class Builder {
      * @private
      */
     static setMiniCssExtractPlugin(useHash: boolean, pathPrefix: string) {
-        let filename = ''
-        let hash = ''
+        let filename = '';
+        let hash = '';
 
         if (pathPrefix) {
-            filename = pathPrefix + '/'
+            filename = pathPrefix + '/';
         }
 
         if (useHash) {
-            hash = '_[contenthash:8]'
+            hash = '_[contenthash:8]';
         }
 
         return new MiniCssExtractPlugin({
-            filename: `${filename}[name]${hash}.css`
-        })
+            filename: `${filename}[name]${hash}.css`,
+        });
     }
 
     static setOptimizeCssAssetsPlugin() {
         return new OptimizeCssAssetsPlugin({
             assetNameRegExp: /\.css$/g,
-            cssProcessor: require('cssnano')
-        })
+            cssProcessor: require('cssnano'),
+        });
     }
 
     static setDefinePlugin(envs: object, currentEnv: string) {
+        console.log(envs[currentEnv].envObj);
         return new webpack.DefinePlugin({
-            'process.env': envs[currentEnv].envObj
-        })
+            'process.env': envs[currentEnv].envObj,
+        });
     }
 
     /**
@@ -810,16 +844,16 @@ class Builder {
             {
                 module: 'react',
                 entry: '//11.url.cn/now/lib/16.2.0/react.min.js?_bid=3123',
-                global: 'React'
+                global: 'React',
             },
             {
                 module: 'react-dom',
                 entry: '//11.url.cn/now/lib/16.2.0/react-dom.min.js?_bid=3123',
-                global: 'ReactDOM'
-            }
-        ]
+                global: 'ReactDOM',
+            },
+        ];
 
-        return new HtmlWebpackExternalsPlugin({ externals: newExternals })
+        return new HtmlWebpackExternalsPlugin({ externals: newExternals });
     }
 
     /**
@@ -841,33 +875,36 @@ class Builder {
         _assetsPrefix: string,
         htmlPrefix?: string
     ) {
-        const newEntry = {}
-        const htmlWebpackPlugins: Array<any> = []
-        const cssInlinePlugins: Array<any> = []
+        const newEntry = {};
+        const htmlWebpackPlugins: Array<any> = [];
+        const cssInlinePlugins: Array<any> = [];
 
-        Object.keys(entries).map(index => {
-            const entry = entries[index]
+        Object.keys(entries).map((index) => {
+            const entry = entries[index];
             /**
              * TODO: 这个地方会不会太强业务相关了？
              */
-            const entryFile = `${entry}/init.js`
+            const entryFile = `${entry}/init.js`;
             // 支持 init.js 文件不是必须存在的场景，纯html
-            const isEntryFileExists = fs.existsSync(entryFile)
-            const match = entry.match(/\/pages\/(.*)/)
-            const pageName = match && match[1]
+            const isEntryFileExists = fs.existsSync(entryFile);
+            const match = entry.match(/\/pages\/(.*)/);
+            const pageName = match && match[1];
 
-            let filename = ''
+            let filename = '';
             if (htmlPrefix) {
-                filename = htmlPrefix + '/'
+                filename = htmlPrefix + '/';
             }
 
             if (isEntryFileExists) {
-                newEntry[pageName] = entryFile
+                newEntry[pageName] = entryFile;
             }
 
             htmlWebpackPlugins.push(
                 new HtmlWebpackPlugin({
-                    template: path.join(projectRoot, `src/pages/${pageName}/index.html`),
+                    template: path.join(
+                        projectRoot,
+                        `src/pages/${pageName}/index.html`
+                    ),
                     filename: `${filename}${pageName}.html`,
                     chunks: [pageName],
                     // assetsPrefix: `${assetsPrefix}/`,
@@ -879,39 +916,44 @@ class Builder {
                               preserveLineBreaks: false,
                               minifyCSS: true,
                               minifyJS: true,
-                              removeComments: false
+                              removeComments: false,
                           }
-                        : false
+                        : false,
                 })
-            )
+            );
 
             // Inline 生成出来的css
             if (_inlineCSS) {
                 let pageName = path
                     .normalize(entry)
                     .split(path.sep)
-                    .pop()
+                    .pop();
                 if (pageName) {
                     cssInlinePlugins.push(
                         new HTMLInlineCSSWebpackPlugin({
                             filter(fileName) {
-                                let cssFileName = fileName
+                                let cssFileName = fileName;
                                 if (/\.css$/.test(fileName)) {
                                     // file的hash默认是8个，如果另外定义数量请注意修改这里的截取位置（MiniCssExtractPlugin中）
-                                    cssFileName = fileName.slice(0, fileName.length - 13)
+                                    cssFileName = fileName.slice(
+                                        0,
+                                        fileName.length - 13
+                                    );
                                 }
                                 return (
                                     pageName === cssFileName ||
-                                    new RegExp(`${pageName}\.html$`).test(fileName)
-                                )
-                            }
+                                    new RegExp(`${pageName}\.html$`).test(
+                                        fileName
+                                    )
+                                );
+                            },
                         })
-                    )
+                    );
                 }
             }
-        })
+        });
 
-        return { newEntry, htmlWebpackPlugins, cssInlinePlugins }
+        return { newEntry, htmlWebpackPlugins, cssInlinePlugins };
     }
 
     /**
@@ -921,8 +963,8 @@ class Builder {
      */
     static setSriPlugin() {
         return new SriPlugin({
-            hashFuncNames: ['sha256', 'sha384']
-        })
+            hashFuncNames: ['sha256', 'sha384'],
+        });
     }
 
     /**
@@ -946,7 +988,7 @@ class Builder {
         product: string,
         outDir: string | object
     ) {
-        outDir = outDir || 'public'
+        outDir = outDir || 'public';
 
         return new OfflineWebpackPlugin({
             path: path.join(projectRoot, `./${outDir}/offline`),
@@ -954,11 +996,11 @@ class Builder {
             pathMapper: (assetPath: string) => {
                 if (assetPath.indexOf(htmlPrefix) !== -1) {
                     // 所有资源都改成 now.qq.com 的域名， 防止跨域问题
-                    assetPath = assetPath.replace(htmlPrefix, '')
+                    assetPath = assetPath.replace(htmlPrefix, '');
                 } else if (assetPath.indexOf(assetsPrefix) !== -1) {
-                    assetPath = assetPath.replace(assetsPrefix, '')
+                    assetPath = assetPath.replace(assetsPrefix, '');
                 }
-                return path.join(serverUrl.replace('//', ''), assetPath)
+                return path.join(serverUrl.replace('//', ''), assetPath);
             },
             beforeAddBuffer(source: string, assetPath: string) {
                 if (assetPath.indexOf(htmlPrefix) !== -1) {
@@ -966,29 +1008,37 @@ class Builder {
                     source = source.replace(
                         /\/\/11\.url\.cn\/now\/([^"'\)\`]+)(["'\`\)])/g,
                         `//${domain}/$1$2`
-                    )
+                    );
                     // 业务资源的域名修改， 防止跨域问题
-                    const regex = new RegExp(`//${cdn}/${product}/([^"'\)\`]+)(["'\`\)])`, 'g')
-                    source = source.replace(regex, `//${domain}/$1$2`)
+                    const regex = new RegExp(
+                        `//${cdn}/${product}/([^"'\)\`]+)(["'\`\)])`,
+                        'g'
+                    );
+                    source = source.replace(regex, `//${domain}/$1$2`);
                     // 去掉 crossorigin="annoymous"
-                    source = source.replace(/crossorigin=\"anonymous\"/g, '')
+                    source = source.replace(/crossorigin=\"anonymous\"/g, '');
                     // 去掉 业务 js 文件的 ?_bid=152
-                    source = source.replace(/\?_bid=152/g, '')
+                    source = source.replace(/\?_bid=152/g, '');
                     // 去掉业务 js 上的 integrity 属性
-                    source = source.replace(/(<script.*)integrity=".*?"/g, '$1')
+                    source = source.replace(
+                        /(<script.*)integrity=".*?"/g,
+                        '$1'
+                    );
                     // 注入离线包的版本号. pack
                     const inject = {
-                        version: Date.now()
-                    }
+                        version: Date.now(),
+                    };
                     source = source.replace(
                         /(<script)/,
-                        '<script>var pack = ' + JSON.stringify(inject) + '</script>$1'
-                    )
+                        '<script>var pack = ' +
+                            JSON.stringify(inject) +
+                            '</script>$1'
+                    );
                 }
 
-                return source
-            }
-        })
+                return source;
+            },
+        });
     }
 
     /**
@@ -1012,8 +1062,8 @@ class Builder {
             inline: true,
             historyApiFallback: false,
             disableHostCheck: true,
-            port: port
-        }
+            port: port,
+        };
     }
 
     /**
@@ -1025,20 +1075,20 @@ class Builder {
      * @private
      */
     static setAlias(alias?: any) {
-        const aliasObject = {}
+        const aliasObject = {};
 
-        listDir(path.join(projectRoot, './src'), 1, []).forEach(dir => {
-            const { name, dirPath } = dir
+        listDir(path.join(projectRoot, './src'), 1, []).forEach((dir) => {
+            const { name, dirPath } = dir;
 
-            aliasObject['/' + name] = dirPath
-            aliasObject[name] = dirPath
-        })
+            aliasObject['/' + name] = dirPath;
+            aliasObject[name] = dirPath;
+        });
 
         if (isEmpty(alias)) {
-            return aliasObject
+            return aliasObject;
         }
 
-        return merge(alias, aliasObject)
+        return merge(alias, aliasObject);
     }
 
     /**
@@ -1047,14 +1097,21 @@ class Builder {
      * 好处是：把构建器放在 ./feflow 目录下，多个项目可以公用一个构建器，便于构建器的增量更新和统一升级
      */
     static setResolveLoaderPath(runtime?: string): object {
-        const jbRuntime = runtime || 'runtime-now-6'
-        const resolveLoaderPath = path.join(osenv.home(), './.feflow/node_modules')
+        const jbRuntime = runtime || 'runtime-now-6';
+        const resolveLoaderPath = path.join(
+            osenv.home(),
+            './.feflow/node_modules'
+        );
         // Loader在捷豹平台的查找路径
-        const jbLoaderPath = `/data/frontend/install/AlloyDist/${jbRuntime}/node_modules`
+        const jbLoaderPath = `/data/frontend/install/AlloyDist/${jbRuntime}/node_modules`;
 
         return {
-            modules: [path.resolve(__dirname, '../node_modules'), resolveLoaderPath, jbLoaderPath]
-        }
+            modules: [
+                path.resolve(__dirname, '../node_modules'),
+                resolveLoaderPath,
+                jbLoaderPath,
+            ],
+        };
     }
 }
 

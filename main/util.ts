@@ -10,10 +10,6 @@ export enum BuilderType {
     build = "build"
 }
 
-declare interface ObjectConstructor {
-    assign(target: any, ...sources: any[]): any;
-}
-
 /**
  * 深拷贝, Object.assign()只有第一层是深拷贝, 第二层之后仍然是 浅拷贝
  * @param source
@@ -69,7 +65,7 @@ export const listDir = (root: string, level: number, directories: Array<any>): A
  */
 export const merge = (obj1: object, obj2: object) => {
     // return Object.assign({}, obj1, obj2);
-    return (<any>Object).assign({}, obj1, obj2)
+    return (<any>Object).assign({}, obj1, obj2);
 
 };
 

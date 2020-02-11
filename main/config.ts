@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 class Config {
-    /** 
+    /**
      * @function getPath
      * @desc     Find feflow.json file
      */

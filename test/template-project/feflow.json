@@ -24,6 +24,20 @@
                 "entry": "https://11.url.cn/now/lib/16.2.0/react-dom.min.js?_bid=3123",
                 "global": "ReactDOM"
             }
-        ]
+        ],
+        "envs": {
+            "dev": {
+                "envObj": {
+                    "NODE_ENV": "\"development\"",
+                    "API_HOST": "\"/\""
+                }
+            },
+            "prod": {
+                "envObj": {
+                    "NODE_ENV": "\"production\"",
+                    "API_HOST": "\"\""
+                }
+            }
+        }
     }
 }

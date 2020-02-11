@@ -7,4 +7,3 @@ declare module 'clean-webpack-plugin';
 declare module 'uglifyjs-webpack-plugin';
 declare module 'string-replace-webpack-plugin';
 declare module 'osenv';
-
