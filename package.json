@@ -69,7 +69,7 @@
     "webpack": "4.20.2",
     "webpack-dev-middleware": "^3.4.0",
     "webpack-hot-middleware": "^2.22.3",
-    "webpack-subresource-integrity": "1.1.0",
+    "webpack-subresource-integrity": "1.5.1",
     "webpack-merge": "^4.2.1"
   },
   "devDependencies": {
